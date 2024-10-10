@@ -1,6 +1,7 @@
 import express from "express";
 import * as path from "path";
 import { Database } from "./data/database";
+import { MoviesRoutes } from "./routers/movies.router";
 
 const app = express();
 
@@ -14,14 +15,13 @@ async function bootstrap() {
   await db.dropTables();
   await db.createTables();
   await db.processCSV(csvFilePath);
+
+  const moviesRoutes = new MoviesRoutes(db);
+
+  app.use("/movies", moviesRoutes.router);
+  app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+  });
 }
 
 bootstrap();
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
