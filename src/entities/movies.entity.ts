@@ -3,14 +3,14 @@ export class Movie {
   public year: number;
   public title: string;
   public studios: string;
-  public winner: boolean;
+  public winner: number;
 
   constructor(
     id: number,
     year: number,
     title: string,
     studios: string,
-    winner: boolean,
+    winner: number,
   ) {
     this.id = id;
     this.year = year;

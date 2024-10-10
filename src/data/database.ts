@@ -47,7 +47,7 @@ export class Database {
         const year = parseInt(row.year);
         const title = row.title;
         const studios = row.studios;
-        const winner = row.winner === "yes";
+        const winner = row.winner === "yes" ? 1 : 0;
 
         const movieId = await this.insertMovie(year, title, studios, winner);
 
@@ -106,7 +106,7 @@ export class Database {
     year: number,
     title: string,
     studios: string,
-    winner: boolean,
+    winner: number,
   ): Promise<number> {
     const query = `INSERT INTO movies (year, title, studios, winner) VALUES (?, ?, ?, ?)`;
     let result = await this.runQuery(query, [year, title, studios, winner]);

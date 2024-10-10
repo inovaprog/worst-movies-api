@@ -2,6 +2,10 @@ import { Database } from "../data/database";
 import { Movie } from "../entities/movies.entity";
 import { Producer } from "../entities/producer.entity";
 
+interface MovieResponse extends Movie {
+  producers: string[];
+}
+
 export class MoviesRepository {
   private db: Database;
 
@@ -44,7 +48,7 @@ export class MoviesRepository {
             GROUP BY 
             m.id;
         `;
-    const movies = await this.db.runAll(query);
+    const movies: MovieResponse[] = await this.db.runAll(query);
     return movies.map((movie) => ({
       ...movie,
       winner: movie.winner === 1,
@@ -72,7 +76,7 @@ export class MoviesRepository {
         m.id;
   `;
 
-    const movie = await this.db.runGet(query, [id]);
+    const movie: MovieResponse = await this.db.runGet(query, [id]);
 
     if (movie) {
       return {
@@ -80,7 +84,5 @@ export class MoviesRepository {
         winner: movie.winner === 1,
       };
     }
-
-    throw new Error(`Filme com ID ${id} não encontrado`);
   }
 }
