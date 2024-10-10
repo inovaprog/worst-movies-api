@@ -22,6 +22,7 @@ export class MoviesController {
     const { id } = req.params;
     if (isNaN(+id)) {
       res.status(400).json({ message: "`id` must be integer" });
+      return;
     }
     try {
       const movie = await this.service.getMovieById(+id);
