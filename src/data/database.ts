@@ -6,6 +6,21 @@ import csv from "csv-parser";
 export class Database {
   private db: SQLiteDatabase | null = null;
 
+  async runQuery(query: string, params: any[] = []) {
+    if (!this.db) throw new Error("Database not connected");
+    return await this.db.run(query, params);
+  }
+
+  async runGet(query: string, params: any[] = []) {
+    if (!this.db) throw new Error("Database not connected");
+    return await this.db.get(query, params);
+  }
+
+  async runAll(query: string, params: any[] = []) {
+    if (!this.db) throw new Error("Database not connected");
+    return await this.db.all(query, params);
+  }
+
   async connect(filename: string) {
     this.db = await open({
       filename,
@@ -87,7 +102,7 @@ export class Database {
     await this.runQuery(query);
   }
 
-  private async insertMovie(
+  async insertMovie(
     year: number,
     title: string,
     studios: string,
@@ -103,12 +118,12 @@ export class Database {
     throw new Error("Filme nao encontrado após inserção");
   }
 
-  private async insertProducer(name: string): Promise<number> {
+  async insertProducer(name: string): Promise<number> {
     const insertQuery = `INSERT OR IGNORE INTO producers (name) VALUES (?)`;
     await this.runQuery(insertQuery, [name]);
 
     const selectQuery = `SELECT id FROM producers WHERE name = ?`;
-    const row = await this.db?.get(selectQuery, [name]);
+    const row = await this.runGet(selectQuery, [name]);
 
     if (row) {
       return row.id;
@@ -117,16 +132,8 @@ export class Database {
     throw new Error(`Produtor não encontrado após inserção`);
   }
 
-  private async insertMovieProducerRelation(
-    movieId: number,
-    producerId: number,
-  ) {
+  async insertMovieProducerRelation(movieId: number, producerId: number) {
     const query = `INSERT INTO movie_producers (movie_id, producer_id) VALUES (?, ?)`;
     return this.runQuery(query, [movieId, producerId]);
-  }
-
-  private async runQuery(query: string, params: any[] = []) {
-    if (!this.db) throw new Error("Database not connected");
-    return await this.db.run(query, params);
   }
 }
