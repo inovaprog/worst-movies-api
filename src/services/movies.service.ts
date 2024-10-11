@@ -43,7 +43,6 @@ export class MoviesService {
 
   async getIntervals(): Promise<ProducerIntervals> {
     const result = await this.moviesRepository.getInterval();
-    console.log(result);
     const min = result
       .filter((movie) => movie.type === "min")
       .map(this.mapProducerInterval);

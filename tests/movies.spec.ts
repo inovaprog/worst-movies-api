@@ -25,6 +25,9 @@ app.put("/movies/:id", validateUpdateMovie, (req, res) => {
 app.delete("/movies/:id", (req, res) => {
   moviesController.deleteMovie(req, res);
 });
+app.get("/movies/winners/intervals", (req, res) => {
+  moviesController.getProducerWinIntervals(req, res);
+});
 
 describe("GET movies/", () => {
   beforeAll(async () => {
@@ -156,31 +159,125 @@ describe("PUT /movies/:id", () => {
 
 describe("DELETE movies/", () => {
   beforeEach(async () => {
-    const insertQuery = `INSERT INTO movies (year, title, studios, winner) VALUES (?, ?, ?, ?)`;
+    const insertQuery = `INSERT INTO movies (id, year, title, studios, winner) VALUES (88, ?, ?, ?, ?)`;
     await db.runQuery(insertQuery, [2022, "Test Movie", "Test Studio", false]);
   });
 
   it("should delete a movie by ID", async () => {
-    const response = await request(app).get("/movies"); // Obtém o ID do filme inserido
-    const movieId = response.body[0].id; // Assume que o filme inserido está no índice 0
+    const deleteResponse = await request(app).delete(`/movies/88`);
+    expect(deleteResponse.status).toBe(200);
 
-    const deleteResponse = await request(app).delete(`/movies/${movieId}`);
-    expect(deleteResponse.status).toBe(200); // Espera-se que a resposta seja 200
-
-    // Verifica se o filme foi realmente excluído
-    const checkResponse = await request(app).get(`/movies/${movieId}`);
-    expect(checkResponse.status).toBe(404); // Espera-se que o filme não seja encontrado
+    const checkResponse = await request(app).get(`/movies/88`);
+    expect(checkResponse.status).toBe(404);
   });
 
   it("should return 400 if ID is not an integer", async () => {
     const response = await request(app).delete("/movies/not-an-id");
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("`id` must be integer");
+
+    await db.runQuery("DELETE from movies where id = 88");
   });
 
   it("should return 404 if movie does not exist", async () => {
-    const deleteResponse = await request(app).delete("/movies/9999"); // ID que não existe
+    const deleteResponse = await request(app).delete("/movies/9999");
     expect(deleteResponse.status).toBe(404);
     expect(deleteResponse.body.message).toBe("Not Found");
+  });
+});
+
+describe("GET /movies/winners/intervals", () => {
+  beforeEach(async () => {
+    await db.runQuery("DELETE FROM movie_producers");
+    await db.runQuery("DELETE FROM movies");
+    await db.runQuery("DELETE FROM producers");
+    await db.runQuery(`
+      INSERT INTO producers (id, name) VALUES
+        (98, 'Producer A'),
+        (99, 'Producer B'),
+        (100, 'Producer C');
+    `);
+    await db.runQuery(`
+      INSERT INTO movies (id, year, winner) VALUES
+        (90, 2000, TRUE),
+        (91, 2001, TRUE),
+        (92, 2003, TRUE),
+        (93, 2004, TRUE),
+        (94, 2010, TRUE);
+    `);
+    await db.runQuery(`
+      INSERT INTO movie_producers (movie_id, producer_id) VALUES
+        ('90', '98'),
+        ('91', '98'),
+        ('92', '98'),
+        ('93', '99'),
+        ('94', '100');
+    `);
+  });
+
+  it("should return the correct min and max intervals", async () => {
+    const response = await request(app).get("/movies/winners/intervals");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("min");
+    expect(response.body).toHaveProperty("max");
+
+    expect(response.body.min).toEqual([
+      {
+        producer: "Producer A",
+        interval: 1,
+        previousWin: 2000,
+        followingWin: 2001,
+      },
+    ]);
+  });
+
+  it("should handle ties correctly in min intervals", async () => {
+    await db.runQuery("DELETE from movie_producers;");
+    await db.runQuery(`
+      INSERT INTO movie_producers (movie_id, producer_id) VALUES
+        ('90', '98'),  -- Producer A won in 2000
+        ('91', '98'),  -- Producer A won in 2001
+        ('92', '99'),  -- Producer B won in 2003
+        ('93', '99'),  -- Producer B won in 2005
+        ('94', '99');  -- Producer B won in 2010
+    `);
+
+    const response = await request(app).get("/movies/winners/intervals");
+
+    expect(response.status).toBe(200);
+    expect(response.body.min).toHaveLength(2);
+    expect(response.body.min).toEqual(
+      expect.arrayContaining([
+        {
+          followingWin: 2001,
+          interval: 1,
+          previousWin: 2000,
+          producer: "Producer A",
+        },
+        {
+          followingWin: 2004,
+          interval: 1,
+          previousWin: 2003,
+          producer: "Producer B",
+        },
+      ]),
+    );
+  });
+
+  it("should return empty arrays when no producers have won multiple times", async () => {
+    await db.runQuery(`
+      DELETE FROM movie_producers;
+      INSERT INTO movie_producers (movie_id, producer_id) VALUES
+        ('1', '1'),  -- Producer A won in 2000
+        ('2', '2'),  -- Producer B won in 2001
+        ('3', '3');  -- Producer C won in 2002
+    `);
+
+    const response = await request(app).get("/movies/winners/intervals");
+
+    expect(response.status).toBe(200);
+    expect(response.body.min).toHaveLength(0);
+    expect(response.body.max).toHaveLength(0);
   });
 });
