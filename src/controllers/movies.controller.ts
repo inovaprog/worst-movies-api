@@ -59,12 +59,27 @@ export class MoviesController {
       }
       res.status(200).json(response);
     } catch (error) {
-      console.log(error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
 
-  async deleteMovie(req: Request, res: Response) {}
+  async deleteMovie(req: Request, res: Response) {
+    const { id } = req.params;
+    if (isNaN(+id)) {
+      res.status(400).json({ message: "`id` must be integer" });
+      return;
+    }
+    try {
+      const result = await this.service.deleteMovie(+id);
+      if (result.changes === 0) {
+        res.status(404).json({ message: "Not Found" });
+        return;
+      }
+      res.status(200).send();
+    } catch (error) {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 
   async getProducerWinIntervals(req: Request, res: Response) {}
 }

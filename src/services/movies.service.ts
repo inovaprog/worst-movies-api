@@ -36,7 +36,9 @@ export class MoviesService {
     return this.moviesRepository.updateMovie(id, movieData);
   }
 
-  async deleteMovie(id: number) {}
+  async deleteMovie(id: number) {
+    return this.moviesRepository.deleteMovie(id);
+  }
 
   async getIntervals(): Promise<ProducerIntervals> {
     return {

@@ -23,7 +23,7 @@ app.put("/movies/:id", validateUpdateMovie, (req, res) => {
   moviesController.updateMovie(req, res);
 });
 
-describe("Movies API", () => {
+describe("GET movies/", () => {
   beforeAll(async () => {
     await db.connect("./tests.sqlite3");
     await db.dropTables();

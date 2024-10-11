@@ -13,6 +13,12 @@ export class MoviesRepository {
     this.db = database;
   }
 
+  async deleteMovie(id: number) {
+    this.db.removeRelations(id);
+    const query = `DELETE from movies where id = ${id}`;
+    return await this.db.runQuery(query);
+  }
+
   async updateMovie(
     id: number,
     updatedData: Partial<Movie>,
