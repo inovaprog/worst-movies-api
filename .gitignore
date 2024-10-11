@@ -2,3 +2,4 @@ dist/
 node_modules/
 dev.sqlite3
 tests.sqlite3
+tests.sqlite
