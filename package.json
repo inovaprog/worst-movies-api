@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node dist/server.js",
     "start:dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc"
@@ -25,8 +25,10 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@types/joi": "^17.2.3",
     "csv-parser": "^3.0.0",
     "express": "^4.21.1",
+    "joi": "^17.13.3",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   }

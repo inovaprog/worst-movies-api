@@ -4,6 +4,7 @@ import { Database } from "./data/database";
 import { MoviesRoutes } from "./routers/movies.router";
 
 const app = express();
+app.use(express.json());
 
 const port = 3000;
 

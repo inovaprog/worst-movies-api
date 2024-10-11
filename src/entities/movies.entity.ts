@@ -1,4 +1,4 @@
-export class Movie {
+export class MovieDB {
   public id: number;
   public year: number;
   public title: string;

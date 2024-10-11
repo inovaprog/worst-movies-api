@@ -1,8 +1,8 @@
 import { Database } from "../data/database";
-import { Movie } from "../entities/movies.entity";
-import { Producer } from "../entities/producer.entity";
+import { MovieDB } from "../entities/movies.entity";
 
-interface MovieResponse extends Movie {
+export interface Movie extends Omit<MovieDB, "winner"> {
+  winner: boolean;
   producers: string[];
 }
 
@@ -13,24 +13,24 @@ export class MoviesRepository {
     this.db = database;
   }
 
-  async addMovieWithProducers(
-    movie: Movie,
-    producers: Producer[],
-  ): Promise<void> {
+  async addMovieWithProducers(movie: Movie): Promise<Movie> {
     const movieId = await this.db.insertMovie(
       movie.year,
       movie.title,
       movie.studios,
-      movie.winner,
+      movie.winner ? 1 : 0,
     );
+    movie.id = movieId;
 
-    for (const producer of producers) {
-      const producerId = await this.db.insertProducer(producer.name);
+    for (const producer of movie.producers) {
+      const producerId = await this.db.insertProducer(producer);
       await this.db.insertMovieProducerRelation(movieId, producerId);
     }
+
+    return movie;
   }
 
-  async getMoviesWithProducers(): Promise<any[]> {
+  async getMoviesWithProducers(): Promise<Movie[]> {
     const query = `
             SELECT 
                 m.id,
@@ -48,14 +48,14 @@ export class MoviesRepository {
             GROUP BY 
             m.id;
         `;
-    const movies: MovieResponse[] = await this.db.runAll(query);
+    const movies = await this.db.runAll(query);
     return movies.map((movie) => ({
       ...movie,
       winner: movie.winner === 1,
     }));
   }
 
-  async getMovieById(id: number): Promise<any> {
+  async getMovieById(id: number): Promise<Movie | undefined> {
     const query = `
     SELECT 
         m.id,
@@ -76,7 +76,7 @@ export class MoviesRepository {
         m.id;
   `;
 
-    const movie: MovieResponse = await this.db.runGet(query, [id]);
+    const movie = await this.db.runGet(query, [id]);
 
     if (movie) {
       return {

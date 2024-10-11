@@ -1,4 +1,5 @@
-import { Request, Response, Router } from "express";
+import { Request, Response, Router, NextFunction } from "express";
+import { validateInsertMovie } from "../middlewares/movie.dto";
 import { MoviesController } from "../controllers/movies.controller";
 import { Database } from "../data/database";
 
@@ -21,9 +22,13 @@ export class MoviesRoutes {
       this.controller.getMovieById(req, res);
     });
 
-    this.router.post("/", (req: Request, res: Response) => {
-      this.controller.createMovie(req, res);
-    });
+    this.router.post(
+      "/",
+      validateInsertMovie,
+      (req: Request, res: Response) => {
+        this.controller.createMovie(req, res);
+      },
+    );
 
     this.router.put("/:id", (req: Request, res: Response) => {
       this.controller.updateMovie(req, res);

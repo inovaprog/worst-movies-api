@@ -1,5 +1,5 @@
 import { Database } from "../data/database";
-import { MoviesRepository } from "../repositories/movies.repository";
+import { Movie, MoviesRepository } from "../repositories/movies.repository";
 
 export interface IntervalResult {
   producer: string;
@@ -28,13 +28,9 @@ export class MoviesService {
     return this.moviesRepository.getMovieById(id);
   }
 
-  async createMovie(movieData: {
-    year: number;
-    title: string;
-    studios: string;
-    producers: string[];
-    winner: boolean;
-  }) {}
+  async createMovie(movieData: Movie) {
+    return this.moviesRepository.addMovieWithProducers(movieData);
+  }
 
   async updateMovie(
     id: number,
