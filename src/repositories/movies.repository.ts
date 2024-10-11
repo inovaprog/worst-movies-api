@@ -13,6 +13,54 @@ export class MoviesRepository {
     this.db = database;
   }
 
+  async getInterval() {
+    const query = `
+      WITH winner_producers AS (
+          SELECT p.name AS producer_name, m.year
+          FROM producers p
+          JOIN movie_producers mp ON p.id = mp.producer_id
+          JOIN movies m ON m.id = mp.movie_id
+          WHERE m.winner = TRUE 
+      ),
+      producer_intervals AS (
+          SELECT wp.producer_name,
+                wp.year AS current_year,
+                LEAD(wp.year) OVER (PARTITION BY wp.producer_name ORDER BY wp.year) AS next_award_year
+          FROM winner_producers wp
+      ),
+      min_intervals AS (
+          SELECT producer_name,
+                next_award_year - current_year AS interval,
+                current_year AS previous_win,
+                next_award_year AS following_win
+          FROM producer_intervals
+          WHERE next_award_year IS NOT NULL
+          AND (next_award_year - current_year) = (
+              SELECT MIN(next_award_year - current_year)
+              FROM producer_intervals
+              WHERE next_award_year IS NOT NULL
+          )
+      ),
+      max_intervals AS (
+          SELECT producer_name,
+                next_award_year - current_year AS interval,
+                current_year AS previous_win,
+                next_award_year AS following_win
+          FROM producer_intervals
+          WHERE next_award_year IS NOT NULL
+          AND (next_award_year - current_year) = (
+              SELECT MAX(next_award_year - current_year)
+              FROM producer_intervals
+              WHERE next_award_year IS NOT NULL
+          )
+      )
+      SELECT producer_name, interval, previous_win, following_win, 'min' AS type FROM min_intervals
+      UNION ALL
+      SELECT producer_name, interval, previous_win, following_win, 'max' AS type FROM max_intervals;
+    `;
+    return await this.db.runAll(query);
+  }
+
   async deleteMovie(id: number) {
     this.db.removeRelations(id);
     const query = `DELETE from movies where id = ${id}`;

@@ -1,4 +1,5 @@
 import { Database } from "../data/database";
+import { Producer } from "../entities/producer.entity";
 import { Movie, MoviesRepository } from "../repositories/movies.repository";
 
 export interface IntervalResult {
@@ -41,9 +42,32 @@ export class MoviesService {
   }
 
   async getIntervals(): Promise<ProducerIntervals> {
+    const result = await this.moviesRepository.getInterval();
+    console.log(result);
+    const min = result
+      .filter((movie) => movie.type === "min")
+      .map(this.mapProducerInterval);
+
+    const max = result
+      .filter((movie) => movie.type === "max")
+      .map(this.mapProducerInterval);
     return {
-      min: [],
-      max: [],
+      min,
+      max,
+    };
+  }
+
+  private mapProducerInterval(item: {
+    producer_name: string;
+    interval: number;
+    previous_win: number;
+    following_win: number;
+  }): IntervalResult {
+    return {
+      producer: item.producer_name,
+      interval: item.interval,
+      previousWin: item.previous_win,
+      followingWin: item.following_win,
     };
   }
 }

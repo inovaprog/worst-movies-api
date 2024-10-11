@@ -81,5 +81,12 @@ export class MoviesController {
     }
   }
 
-  async getProducerWinIntervals(req: Request, res: Response) {}
+  async getProducerWinIntervals(req: Request, res: Response) {
+    try {
+      const result = await this.service.getIntervals();
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }
