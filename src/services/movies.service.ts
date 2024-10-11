@@ -32,16 +32,9 @@ export class MoviesService {
     return this.moviesRepository.addMovieWithProducers(movieData);
   }
 
-  async updateMovie(
-    id: number,
-    movieData: {
-      year: number;
-      title: string;
-      studios: string;
-      producers: string[];
-      winner: boolean;
-    },
-  ) {}
+  async updateMovie(id: number, movieData: Partial<Movie>) {
+    return this.moviesRepository.updateMovie(id, movieData);
+  }
 
   async deleteMovie(id: number) {}
 

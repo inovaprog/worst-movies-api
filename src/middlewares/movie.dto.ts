@@ -20,6 +20,7 @@ export function validateInsertMovie(
     res.status(400).json({
       message: error.details[0].message,
     });
+    return;
   }
 
   next();

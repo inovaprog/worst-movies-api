@@ -3,6 +3,7 @@ import express from "express";
 import { Database } from "../src/data/database";
 import { MoviesController } from "../src/controllers/movies.controller";
 import path from "path";
+import { validateInsertMovie } from "../src/middlewares/movie.dto";
 
 const app = express();
 const db = new Database();
@@ -12,6 +13,9 @@ const csvFilePath = path.resolve(__dirname, "../tests/test.movielist.csv");
 app.use(express.json());
 app.get("/movies", (req, res) => moviesController.getAllMovies(req, res));
 app.get("/movies/:id", (req, res) => moviesController.getMovieById(req, res));
+app.post("/movies", validateInsertMovie, (req, res) =>
+  moviesController.createMovie(req, res),
+);
 
 describe("Movies API", () => {
   beforeAll(async () => {
@@ -43,5 +47,55 @@ describe("Movies API", () => {
     const response = await request(app).get("/movies/invalid_id");
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("message", "`id` must be integer");
+  });
+});
+
+describe("POST /movies", () => {
+  it("should insert a new movie and return 200", async () => {
+    const newMovie = {
+      title: "Suicide Squad",
+      year: 2021,
+      studios: "Warner Bros",
+      producers: ["Charles Roven", "Richard Suckle"],
+      winner: true,
+    };
+
+    const response = await request(app).post("/movies").send(newMovie);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("id");
+    expect(response.body.title).toBe("Suicide Squad");
+  });
+
+  it("should return 400 if request body is missing required fields", async () => {
+    const incompleteMovie = {
+      year: 2010,
+      producers: ["Christopher Nolan"],
+      winner: true,
+    };
+
+    const response = await request(app).post("/movies").send(incompleteMovie);
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe('"title" is required');
+  });
+
+  it("should return 500 if there is a server error", async () => {
+    jest.spyOn(db, "runQuery").mockImplementationOnce(() => {
+      throw new Error("Database error");
+    });
+
+    const newMovie = {
+      title: "Inception",
+      year: 2010,
+      studios: "Warner Bros",
+      producers: ["Christopher Nolan"],
+      winner: true,
+    };
+
+    const response = await request(app).post("/movies").send(newMovie);
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toBe("Internal Server Error");
   });
 });

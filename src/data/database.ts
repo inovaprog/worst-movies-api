@@ -136,4 +136,9 @@ export class Database {
     const query = `INSERT INTO movie_producers (movie_id, producer_id) VALUES (?, ?)`;
     return this.runQuery(query, [movieId, producerId]);
   }
+
+  async removeRelations(movieId: number) {
+    const query = `DELETE from movie_producers where movie_id = ${movieId}`;
+    return this.runQuery(query);
+  }
 }
