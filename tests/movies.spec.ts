@@ -3,7 +3,10 @@ import express from "express";
 import { Database } from "../src/data/database";
 import { MoviesController } from "../src/controllers/movies.controller";
 import path from "path";
-import { validateInsertMovie } from "../src/middlewares/movie.dto";
+import {
+  validateInsertMovie,
+  validateUpdateMovie,
+} from "../src/middlewares/movie.dto";
 
 const app = express();
 const db = new Database();
@@ -16,6 +19,9 @@ app.get("/movies/:id", (req, res) => moviesController.getMovieById(req, res));
 app.post("/movies", validateInsertMovie, (req, res) =>
   moviesController.createMovie(req, res),
 );
+app.put("/movies/:id", validateUpdateMovie, (req, res) => {
+  moviesController.updateMovie(req, res);
+});
 
 describe("Movies API", () => {
   beforeAll(async () => {
@@ -97,5 +103,50 @@ describe("POST /movies", () => {
 
     expect(response.status).toBe(500);
     expect(response.body.message).toBe("Internal Server Error");
+  });
+});
+
+describe("PUT /movies/:id", () => {
+  it("should update a movie and return 200", async () => {
+    const updatedMovieData = {
+      title: "Inception Updated",
+      year: 2010,
+      studios: "Warner Bros",
+      producers: ["Christopher Nolan"],
+      winner: true,
+    };
+
+    const response = await request(app)
+      .put("/movies/1") // Coloque um ID válido aqui
+      .send(updatedMovieData);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("title", "Inception Updated");
+  });
+
+  it("should return 404 if movie not found", async () => {
+    const updatedMovieData = {
+      title: "Nonexistent Movie",
+      year: 2022,
+      studios: "Unknown",
+      producers: ["Nobody"],
+      winner: false,
+    };
+
+    const response = await request(app)
+      .put("/movies/9999") // ID inválido
+      .send(updatedMovieData);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty("message", "Not Found");
+  });
+
+  it("should return 400 if id is not an integer", async () => {
+    const response = await request(app)
+      .put("/movies/abc") // ID não numérico
+      .send({ title: "Invalid Movie" });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("message", "`id` must be integer");
   });
 });

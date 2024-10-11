@@ -53,6 +53,10 @@ export class MoviesController {
     }
     try {
       const response = await this.service.updateMovie(+id, req.body);
+      if (!response) {
+        res.status(404).json({ message: "Not Found" });
+        return;
+      }
       res.status(200).json(response);
     } catch (error) {
       console.log(error);

@@ -1,5 +1,8 @@
 import { Request, Response, Router, NextFunction } from "express";
-import { validateInsertMovie } from "../middlewares/movie.dto";
+import {
+  validateInsertMovie,
+  validateUpdateMovie,
+} from "../middlewares/movie.dto";
 import { MoviesController } from "../controllers/movies.controller";
 import { Database } from "../data/database";
 
@@ -30,9 +33,13 @@ export class MoviesRoutes {
       },
     );
 
-    this.router.put("/:id", (req: Request, res: Response) => {
-      this.controller.updateMovie(req, res);
-    });
+    this.router.put(
+      "/:id",
+      validateUpdateMovie,
+      (req: Request, res: Response) => {
+        this.controller.updateMovie(req, res);
+      },
+    );
 
     this.router.delete("/:id", (req: Request, res: Response) => {
       this.controller.deleteMovie(req, res);
