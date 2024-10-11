@@ -22,6 +22,9 @@ app.post("/movies", validateInsertMovie, (req, res) =>
 app.put("/movies/:id", validateUpdateMovie, (req, res) => {
   moviesController.updateMovie(req, res);
 });
+app.delete("/movies/:id", (req, res) => {
+  moviesController.deleteMovie(req, res);
+});
 
 describe("GET movies/", () => {
   beforeAll(async () => {
@@ -148,5 +151,36 @@ describe("PUT /movies/:id", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("message", "`id` must be integer");
+  });
+});
+
+describe("DELETE movies/", () => {
+  beforeEach(async () => {
+    const insertQuery = `INSERT INTO movies (year, title, studios, winner) VALUES (?, ?, ?, ?)`;
+    await db.runQuery(insertQuery, [2022, "Test Movie", "Test Studio", false]);
+  });
+
+  it("should delete a movie by ID", async () => {
+    const response = await request(app).get("/movies"); // Obtém o ID do filme inserido
+    const movieId = response.body[0].id; // Assume que o filme inserido está no índice 0
+
+    const deleteResponse = await request(app).delete(`/movies/${movieId}`);
+    expect(deleteResponse.status).toBe(200); // Espera-se que a resposta seja 200
+
+    // Verifica se o filme foi realmente excluído
+    const checkResponse = await request(app).get(`/movies/${movieId}`);
+    expect(checkResponse.status).toBe(404); // Espera-se que o filme não seja encontrado
+  });
+
+  it("should return 400 if ID is not an integer", async () => {
+    const response = await request(app).delete("/movies/not-an-id");
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("`id` must be integer");
+  });
+
+  it("should return 404 if movie does not exist", async () => {
+    const deleteResponse = await request(app).delete("/movies/9999"); // ID que não existe
+    expect(deleteResponse.status).toBe(404);
+    expect(deleteResponse.body.message).toBe("Not Found");
   });
 });
