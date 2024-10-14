@@ -11,7 +11,7 @@ import {
 const app = express();
 const db = new Database();
 const moviesController = new MoviesController(db);
-const csvFilePath = path.resolve(__dirname, "../tests/test.movielist.csv");
+const csvFilePath = path.resolve(__dirname, "../src/data/movielist.csv");
 
 app.use(express.json());
 app.get("/movies", (req, res) => moviesController.getAllMovies(req, res));
@@ -31,8 +31,7 @@ app.get("/movies/winners/intervals", (req, res) => {
 
 describe("GET movies/", () => {
   beforeAll(async () => {
-    await db.connect("./tests.sqlite3");
-    await db.dropTables();
+    await db.connect();
     await db.createTables();
     await db.processCSV(csvFilePath);
   });
@@ -41,7 +40,7 @@ describe("GET movies/", () => {
     const response = await request(app).get("/movies");
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBe(4);
+    expect(response.body.length).toBe(206);
   });
 
   it("should return a specific movie by id", async () => {
@@ -69,7 +68,7 @@ describe("POST /movies", () => {
       year: 2021,
       studios: "Warner Bros",
       producers: ["Charles Roven", "Richard Suckle"],
-      winner: true,
+      winner: false,
     };
 
     const response = await request(app).post("/movies").send(newMovie);
@@ -119,7 +118,7 @@ describe("PUT /movies/:id", () => {
       year: 2010,
       studios: "Warner Bros",
       producers: ["Christopher Nolan"],
-      winner: true,
+      winner: false,
     };
 
     const response = await request(app)
@@ -159,15 +158,15 @@ describe("PUT /movies/:id", () => {
 
 describe("DELETE movies/", () => {
   beforeEach(async () => {
-    const insertQuery = `INSERT INTO movies (id, year, title, studios, winner) VALUES (88, ?, ?, ?, ?)`;
+    const insertQuery = `INSERT INTO movies (id, year, title, studios, winner) VALUES (888, ?, ?, ?, ?)`;
     await db.runQuery(insertQuery, [2022, "Test Movie", "Test Studio", false]);
   });
 
   it("should delete a movie by ID", async () => {
-    const deleteResponse = await request(app).delete(`/movies/88`);
+    const deleteResponse = await request(app).delete(`/movies/888`);
     expect(deleteResponse.status).toBe(200);
 
-    const checkResponse = await request(app).get(`/movies/88`);
+    const checkResponse = await request(app).get(`/movies/888`);
     expect(checkResponse.status).toBe(404);
   });
 
@@ -176,13 +175,42 @@ describe("DELETE movies/", () => {
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("`id` must be integer");
 
-    await db.runQuery("DELETE from movies where id = 88");
+    await db.runQuery("DELETE from movies where id = 888");
   });
 
   it("should return 404 if movie does not exist", async () => {
     const deleteResponse = await request(app).delete("/movies/9999");
     expect(deleteResponse.status).toBe(404);
     expect(deleteResponse.body.message).toBe("Not Found");
+  });
+});
+
+describe("GET /movies/winners/intervals (default CSV)", () => {
+  it("Should return the correct answer for the origial CSV", async () => {
+    const response = await request(app).get("/movies/winners/intervals");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("min");
+    expect(response.body).toHaveProperty("max");
+
+    const { min, max } = response.body;
+
+    const minResponse = {
+      producer: "Joel Silver",
+      interval: 1,
+      previousWin: 1990,
+      followingWin: 1991,
+    };
+
+    const maxResponse = {
+      producer: "Matthew Vaughn",
+      interval: 13,
+      previousWin: 2002,
+      followingWin: 2015,
+    };
+
+    expect(min).toContainEqual(minResponse);
+    expect(max).toContainEqual(maxResponse);
   });
 });
 
