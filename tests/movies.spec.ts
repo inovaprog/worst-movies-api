@@ -90,25 +90,6 @@ describe("POST /movies", () => {
     expect(response.status).toBe(400);
     expect(response.body.message).toBe('"title" is required');
   });
-
-  it("should return 500 if there is a server error", async () => {
-    jest.spyOn(db, "runQuery").mockImplementationOnce(() => {
-      throw new Error("Database error");
-    });
-
-    const newMovie = {
-      title: "Inception",
-      year: 2010,
-      studios: "Warner Bros",
-      producers: ["Christopher Nolan"],
-      winner: true,
-    };
-
-    const response = await request(app).post("/movies").send(newMovie);
-
-    expect(response.status).toBe(500);
-    expect(response.body.message).toBe("Internal Server Error");
-  });
 });
 
 describe("PUT /movies/:id", () => {

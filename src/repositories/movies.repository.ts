@@ -62,7 +62,7 @@ export class MoviesRepository {
   }
 
   async deleteMovie(id: number) {
-    this.db.removeRelations(id);
+    await this.db.removeRelations(id);
     const query = `DELETE from movies where id = ${id}`;
     return await this.db.runQuery(query);
   }
