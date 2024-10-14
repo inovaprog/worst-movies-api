@@ -12,8 +12,7 @@ const csvFilePath = path.resolve(__dirname, "data/movielist.csv");
 
 async function bootstrap() {
   const db = new Database();
-  await db.connect("./dev.sqlite3");
-  await db.dropTables();
+  await db.connect();
   await db.createTables();
   await db.processCSV(csvFilePath);
 

@@ -21,9 +21,9 @@ export class Database {
     return await this.db.all(query, params);
   }
 
-  async connect(filename: string) {
+  async connect() {
     this.db = await open({
-      filename,
+      filename: ":memory:",
       driver: sqlite3.Database,
     });
   }
@@ -32,12 +32,6 @@ export class Database {
     await this.createMoviesTable();
     await this.createProducersTable();
     await this.createRelationTable();
-  }
-
-  async dropTables() {
-    await this.runQuery("DROP TABLE IF EXISTS movie_producers;");
-    await this.runQuery("DROP TABLE IF EXISTS movies;");
-    await this.runQuery("DROP TABLE IF EXISTS producers;");
   }
 
   async processCSV(csvFilePath: string) {
