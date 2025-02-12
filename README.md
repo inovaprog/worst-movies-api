@@ -1,46 +1,26 @@
-# API dos Piores filmes
-
-## Requisitos da API:
-
-Ler o arquivo CSV dos filmes e inserir os dados em uma base de dados ao iniciar a
-aplicação.
-
-Obter o produtor com maior intervalo entre dois prêmios consecutivos, e o que
-obteve dois prêmios mais rápido.
-
-## Requisitos para execução da aplicação
-
+# Worst Movies API
+## API Requirements:
+Read the CSV file of movies and insert the data into a database when the application starts.
+Retrieve the producer with the largest gap between two consecutive awards, and the one who achieved two awards the fastest.
+## Application Execution Requirements
 - NodeJS v20.15
-
-## Instalação
-
+## Installation
 ```bash
 npm install
 ```
-
-## Como executar:
-
-Substituir o arquivo data/movielist.csv com os dados dos filmes seguindo o mesmo formato atual.
-
-Para rodar em modo de desenvolvimento:
-
+## How to Run:
+Replace the file `data/movielist.csv` with the movie data following the current format.
+To run in development mode:
 ```
 npm run start:dev
 ```
 
-
 ## Endpoints
-
-### Filmes
-
-#### 1. Listar Todos os Filmes
-
+### Movies
+#### 1. List All Movies
 **GET** `/movies`
-
-Retorna uma lista de todos os filmes.
-
-**Exemplo de resposta**:
-
+Returns a list of all movies.
+**Example Response**:
 ```json
 [
   {
@@ -61,23 +41,16 @@ Retorna uma lista de todos os filmes.
   }
 ]
 ```
-
-### Buscar Filme por ID
-
+### Search for a Movie by ID
 #### **GET** `/movies/:id`
-
-Este endpoint retorna os detalhes de um filme específico com base no `id` fornecido.
-
-**Parâmetros**:
-- `id` (path): O ID do filme que deseja buscar (deve ser um número inteiro).
-
-**Exemplo de Requisição**:
-
+This endpoint returns the details of a specific movie based on the provided `id`.
+**Parameters**:
+- `id` (path): The ID of the movie you want to search for (must be an integer).
+**Example Request**:
 ```
 GET /movies/1
 ```
-
-**Exemplo de Resposta Sucesso (200 OK)**:
+**Example Success Response (200 OK)**:
 ```json
 {
   "id": 1,
@@ -87,34 +60,23 @@ GET /movies/1
   "winner": false,
   "producers": ["Tom Hooper", "Debra Hayward"]
 }
-
 ```
+Response Codes:
+ ```200 OK```: Returns the movie details.
+ ```404 Not Found```: The movie was not found.
+ ```400 Bad Request```: The provided id is invalid (not an integer).
 
-Códigos de Resposta:
-
- ```200 OK```: Retorna os detalhes do filme.
-
- ```404 Not Found```: O filme não foi encontrado.
-
- ```400 Bad Request```: O id fornecido não é válido (não é um número inteiro).
-
-
-### Inserir um Novo Filme
-
+### Insert a New Movie
 #### **POST** `/movies`
-
-Este endpoint permite inserir um novo filme no banco de dados.
-
-**Parâmetros**:
-O corpo da requisição deve conter os seguintes campos:
-
-- `title` (string, obrigatório): O título do filme.
-- `year` (number, obrigatório): O ano de lançamento do filme.
-- `studios` (string, obrigatório): O studio que fez o filme.
-- `winner` (boolean, obrigatório): Indica se o filme foi vencedor.
-- `producers` (array de strings, obrigatório): Uma lista de nomes dos produtores do filme.
-
-**Exemplo de Requisição**:
+This endpoint allows inserting a new movie into the database.
+**Parameters**:
+The request body must contain the following fields:
+- `title` (string, required): The title of the movie.
+- `year` (number, required): The release year of the movie.
+- `studios` (string, required): The studio that made the movie.
+- `winner` (boolean, required): Indicates if the movie was a winner.
+- `producers` (array of strings, required): A list of the names of the producers of the movie.
+**Example Request**:
 ```json
 POST /movies
 {
@@ -125,35 +87,23 @@ POST /movies
   "producers": ["Producer 1", "Producer 2"]
 }
 ```
+Response Codes:
+ ```200 OK```: Returns the movie details.
+ ```500 Internal Server Error```: Unexpected system error.
+ ```400 Bad Request```: Some fields are invalid.
 
-Códigos de Resposta:
-
- ```200 OK```: Retorna os detalhes do filme.
-
- ```500 Internal Server Error```: Erro inesperado no sistema.
-
- ```400 Bad Request```: Algum dos campos não é valido.
-
-
-### Atualizar um Filme
-
+### Update a Movie
 #### **PUT** `/movies/:id`
-
-Este endpoint permite atualizar as informações de um filme existente no banco de dados, identificado pelo seu `id`.
-
-**Parâmetros**:
-
-- `id` (number, obrigatório): O ID do filme que será atualizado. Esse parâmetro deve ser passado na URL.
-
-O corpo da requisição pode conter os seguintes campos:
-
-- `title` (string, opcional): O novo título do filme.
-- `year` (number, opcional): O novo ano de lançamento do filme.
-- `studios` (string, opcional): O studio que fez o filme.
-- `winner` (boolean, opcional): Indica se o filme foi vencedor.
-- `producers` (array de strings, opcional): Uma lista de novos produtores do filme.
-
-**Exemplo de Requisição**:
+This endpoint allows updating the information of an existing movie in the database, identified by its `id`.
+**Parameters**:
+- `id` (number, required): The ID of the movie to be updated. This parameter must be passed in the URL.
+The request body can contain the following fields:
+- `title` (string, optional): The new title of the movie.
+- `year` (number, optional): The new release year of the movie.
+- `studios` (string, optional): The studio that made the movie.
+- `winner` (boolean, optional): Indicates if the movie was a winner.
+- `producers` (array of strings, optional): A list of new producers of the movie.
+**Example Request**:
 ```json
 PUT /movies/1
 {
@@ -163,45 +113,29 @@ PUT /movies/1
   "producers": ["Producer 3"]
 }
 ```
-
-### Deletar um Filme
-
+### Delete a Movie
 #### **DELETE** `/movies/:id`
-
-Este endpoint permite deletar um filme existente no banco de dados, identificado pelo seu `id`.
-
-**Parâmetros**:
-
-- `id` (number, obrigatório): O ID do filme que será deletado. Esse parâmetro deve ser passado na URL.
-
-**Exemplo de Requisição**:
+This endpoint allows deleting an existing movie in the database, identified by its `id`.
+**Parameters**:
+- `id` (number, required): The ID of the movie to be deleted. This parameter must be passed in the URL.
+**Example Request**:
 ```http
 DELETE /movies/1
 ```
-
-Códigos de Resposta:
-
- ```200 OK```: Filme apagado com sucesso.
-
- ```500 Internal Server Error```: Erro inesperado no sistema.
-
- ```400 Bad Request```: O campo de ID não é válido.
-
- ### Obter Intervalos de Produtores Vencedores
-
+Response Codes:
+ ```200 OK```: Movie successfully deleted.
+ ```500 Internal Server Error```: Unexpected system error.
+ ```400 Bad Request```: The ID field is invalid.
+ ### Get Intervals of Winning Producers
 #### **GET** `/movies/winners/intervals`
-
-Este endpoint retorna os produtores que ganharam prêmios mais de uma vez, exibindo o intervalo mínimo e máximo entre as vitórias.
-
-**Resposta**:
-A resposta contém dois arrays: `min` e `max`. O array `min` contém os produtores com os menores intervalos entre as vitórias, enquanto o array `max` contém os produtores com os maiores intervalos entre as vitórias.
-
-**Exemplo de Requisição**:
+This endpoint returns the producers who won more than once, showing the minimum and maximum intervals between wins.
+**Response**:
+The response contains two arrays: `min` and `max`. The `min` array contains the producers with the smallest intervals between wins, while the `max` array contains the producers with the largest intervals between wins.
+**Example Request**:
 ```http
 GET /movies/winners/intervals
 ```
-
-**Exemplo de resposta**
+**Example Response**
 ```json
 {
   "min": [
@@ -234,15 +168,10 @@ GET /movies/winners/intervals
   ]
 }
 ```
-
-### Testes de integração
-Os testes de integração estão disponíveis em /tests/ 
-
-Existe um arquivo csv exclusivo para os testes que cria uma integração de ponta a ponta.
-#### Executando os testes de integração:
+### Integration Tests
+Integration tests are available in `/tests/`
+There is a dedicated CSV file for testing that creates an end-to-end integration.
+#### Running the Integration Tests:
 ```
-
 npm run test
-
 ```
-
